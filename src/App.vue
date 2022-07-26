@@ -1,20 +1,20 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+<!--  <img alt="Vue logo" src="./assets/logo.png">
+  <HelloWorld msg="Welcome to Your Vue.js App"/>-->
   <PageHeader/><!--헤더 컴포넌트-->
   <router-view/><!--페이지 이동이 표시할 곳-->
   <PageFooter/><!--푸터 컴포넌트-->
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+/*import HelloWorld from './components/HelloWorld.vue'*/
 import PageHeader from '@/components/PageHeader'
 import PageFooter from '@/components/PageFooter'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
+    /*HelloWorld,*/
     PageHeader,
     PageFooter
   }
