@@ -3,12 +3,18 @@ import PageHome from '@/views/PageHome.vue'
 import BoardList from "@/views/board/BoardList";
 import BoardDetail from "@/views/board/BoardDetail";
 import BoardWrite from '@/views/board/BoardWrite.vue'
+import SignIn from "@/views/common/SignIn";
 
 const routes = [
     {
         path: '/',
         name: 'PageHome',
         component: PageHome
+    },
+    {
+        path: '/signIn',
+        name: 'SignIn',
+        component: SignIn
     },
     {
         path: '/about',

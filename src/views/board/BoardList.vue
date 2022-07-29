@@ -16,33 +16,53 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(row,idx) in list" :key="idx">
+        <tr v-for="(row, idx) in list" :key="idx">
           <td>{{ row.idx }}</td>
-          <td><a v-on:click="viewDetail(`${row.idx}`)">{{ row.title }}</a></td>
+          <td><a v-on:click="viewDetail(`${row.idx}`)" style="cursor: pointer">{{ row.title }}</a></td>
           <td>{{ row.content }}</td>
           <td>{{ row.viewCnt }}</td>
-          <td>{{ row.author}}</td>
           <td>{{ row.regDt}}</td>
+          <td>{{ row.author}}</td>
           <td><button type="button" class="w3-button w3-round w3-red" v-on:click="fnDelete(`${row.idx}`)">삭제</button></td>
         </tr>
       </tbody>
     </table>
-    <div class="pagination w3-bar w3-padding-16 w3-small"  v-if="paging.total_list_cnt > 0">
+    <div class="pagination w3-bar w3-padding-16 w3-small" v-if="paging.totalListCnt > 0">
       <span class="pg">
         <a href="javascript:;" @click="fnPage(1)" class="first w3-button w3-border">&lt;&lt;</a>
-        <a href="javascript:;" v-if="paging.start_page > 10" @click="fnPage(`${paging.start_page-1}`)" class="prev w3-button w3-border">&lt;</a>
-        <template v-for=" (n,index) in pagination()">
-          <template v-if="paging.page == n">
-              <strong class="w3-button w3-border w3-green" :key="index">{{ n }}</strong>
-          </template>
-          <template v-else>
-              <a class="w3-button w3-border" href="javascript:;" @click="fnPage(`${n}`)" :key="index">{{ n }}</a>
-          </template>
+        <a href="javascript:;" v-if="paging.startPage > 10" @click="fnPage(`${paging.startPage-1}`)" class="prev w3-button w3-border">&lt;</a>
+        <template v-for=" (n,index) in paginavigation()">
+            <template v-if="paging.page==n">
+                <strong class="w3-button w3-border w3-green" :key="index">{{ n }}</strong>
+            </template>
+            <template v-else>
+                <a class="w3-button w3-border" href="javascript:;" @click="fnPage(`${n}`)" :key="index">{{ n }}</a>
+            </template>
         </template>
-        <a href="javascript:;" v-if="paging.total_page_cnt > paging.end_page"
-           @click="fnPage(`${paging.end_page+1}`)" class="next w3-button w3-border">&gt;</a>
-        <a href="javascript:;" @click="fnPage(`${paging.total_page_cnt}`)" class="last w3-button w3-border">&gt;&gt;</a>
+        <a href="javascript:;" v-if="paging.totalPageCnt > paging.endPage"
+           @click="fnPage(`${paging.endPage+1}`)" class="next w3-button w3-border">&gt;</a>
+        <a href="javascript:;" @click="fnPage(`${paging.totalPageCnt}`)" class="last w3-button w3-border">&gt;&gt;</a>
       </span>
+    </div>
+
+<!--    <div>
+      <select v-model="search.srchType">
+        <option v-for="item in srchTypeList" :value="item.value" :key="item.value">{{ item.text }}</option>
+      </select>
+      &nbsp;
+      <input type="text" v-model="keyword" @keyup.enter="fnPage()">
+      &nbsp;
+      <button @click="fnPage()">검색</button>
+    </div>-->
+
+    <div>
+      <select v-model="search.srchType">
+        <option v-for="item in srchTypeList" :value="item.value" :key="item.value">{{ item.text }}</option>
+      </select>
+      &nbsp;
+      <input type="text" v-model="search.srchKeyword" @keyup.enter="fnGetList()">
+      &nbsp;
+      <button @click="fnGetList()">검색</button>
     </div>
   </div>
 </template>
@@ -55,27 +75,27 @@ export default {
       requestBody: {},
       list: {},
       no: '',
-      paging: {
-        block: 0,
-        end_page: 0,
-        next_block: 0,
-        page: 0,
-        page_size: 0,
-        prev_block: 0,
-        start_index: 0,
-        start_page: 0,
-        total_block_cnt: 0,
-        total_list_cnt: 0,
-        total_page_cnt: 0,
-      }, //페이징 데이터
+      paging: {},
       page: this.$route.query.page ? this.$route.query.page : 1,
       size: this.$route.query.size ? this.$route.query.size : 10,
-      keyword: this.$route.query.keyword,
-      pagination: function () { //페이징 처리 for문 커스텀
+      search: {
+        srchType: '',
+        srchKeyword: '',
+        page: this.page,
+        size: this.size
+      },
+      srchTypeList: [
+        { value: '', text: '전체' },
+        { value: 1, text: '제목' },
+        { value: 2, text: '내용' },
+        { value: 3, text: '작성자'}
+      ],
+      /*keyword: this.$route.query.keyword,*/
+      paginavigation: function () { //페이징 처리 for문 커스텀
         let pageNumber = [] //;
-        let start_page = this.paging.start_page;
-        let end_page = this.paging.end_page;
-        for (let i = start_page; i <= end_page; i++) pageNumber.push(i);
+        let startPage = this.paging.startPage;
+        let endPage = this.paging.endPage;
+        for (let i = startPage; i <= endPage; i++) pageNumber.push(i);
         return pageNumber;
       }
     }
@@ -86,15 +106,19 @@ export default {
   methods: {
     fnGetList() {
       this.requestBody = { // 데이터 전송
-        keyword: this.keyword
+        srchKeyword: this.srchKeyword,
+        srchType: this.srchType,
+        page: this.page,
+        size: this.size
       }
 
-      this.$axios.post(/*this.$serverUrl + */"/board/list", {
-        params: this.requestBody,
-        headers: {}
-      }).then((res) => {
+      this.$axios.post("/board/list",this.search /*{
+        params: this.search,
+      }*/).then((res) => {
         if(res.request){
           this.list = res.data.data
+          this.paging = res.data.pagination
+          this.no = this.paging.totalListCnt - ((this.paging.page - 1) * this.paging.pageSize)
         }
 
       }).catch((err) => {
